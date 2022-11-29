@@ -1,0 +1,6 @@
+.*/**
+**/__**__/**
+**/node_modules/**
+data/**
+react/build/**
+venv/**
