@@ -1,19 +1,33 @@
+import logging
+import os
 from utils import *
 
 class File():
     TABLE = 'File'
-    COLUMN_ID = 'id'
-    COLUMN_NAME = 'name'
+    ID = 'id'
+    NAME = 'name'
+    TYPE = 'type'
+    ADDED_DATE = 'added_date'
+    IMAGE_TYPE = ['jpeg', 'jpg', 'png', 'gif']
+    VIDEO_TYPE = ['mp4', 'webm']
+    
     
     def __init__(self, db):
          self.db = db
          
          
     def create(self):
-        return f"""CREATE TABLE IF NOT EXISTS {__class__.TABLE} (id INTEGER PRIMARY KEY, name TEXT NOT NULL UNIQUE); """
+        script = f"""CREATE TABLE IF NOT EXISTS {__class__.TABLE} (
+            {__class__.ID} INTEGER PRIMARY KEY, 
+            {__class__.NAME} TEXT NOT NULL UNIQUE,
+            {__class__.TYPE} TEXT(10),
+            {__class__.ADDED_DATE} INTEGER)
+            CREATE UNIQUE INDEX File_name_IDX ON File (name,"type");
+"""
+        self.db._create(script)
     
     def list(self):
-        self.db._select(__class__.TABLE, __class__.COLUMN_NAME)
+        self.db._select(__class__.TABLE, __class__.NAME, order=__class__.ID)
         return self.db._fetchall()
 
     def add_tag(self, tag, file_data, one=True):
@@ -25,7 +39,7 @@ class File():
             file_id = self.db.File.id(file_data)
         else:
             file_id = file_data
-        self.db._inserts('TagFile', ['tag_id', 'file_id'], [tag_id, file_id])
+        self.db._inserts(TagFile.TABLE, [TagFile.TAG_ID, TagFile.FILE_ID], [tag_id, file_id])
         self.db.save(one)
         
     def add_tags(self, file_name: str, tag_list, one=True):
@@ -36,23 +50,39 @@ class File():
         self.db.save(one)
 
     def name(self, file_id):
-        self.db._search_one(__class__.TABLE, __class__.COLUMN_NAME, __class__.COLUMN_ID, file_id)
+        self.db._search_one(__class__.TABLE, __class__.NAME, __class__.ID, file_id)
         return self.db._fetchone()
 
     def id(self, file_name):
-        self.db._search_one(__class__.TABLE, __class__.COLUMN_ID, __class__.COLUMN_NAME, file_name)
+        self.db._search_one(__class__.TABLE, __class__.ID, __class__.NAME, file_name)
         return self.db._fetchone()
 
     def add(self, name, one=True):
-        self.db._insert(__class__.TABLE, __class__.COLUMN_NAME, name)
+        file_type = self.db.File.get_file_tyle(name)
+        self.db._inserts(__class__.TABLE, [__class__.NAME, __class__.TYPE], [name, file_type])
         self.db.save(one)
+        
+    def get_file_tyle(self, name):
+        file_type = os.path.splitext(name)[1][1:]
+        if file_type in __class__.IMAGE_TYPE:
+            file_type = 'image'
+        elif file_type in __class__.VIDEO_TYPE:
+            file_type = 'video'
+        else:
+            file_type = 'unknow'
+        return file_type
+        
+    def fill_file_type(self, name):
+        file_type = self.db.File.get_file_tyle(name)
+        self.db._update_file_type(name, file_type)
+        
 
     def delete(self, data, one=True):
         if isinstance(data, int):
             file_id = self.File.id(data)
         else:
             file_id = data
-        self.db._delete(__class__.TABLE, __class__.COLUMN_ID, file_id)
+        self.db._delete(__class__.TABLE, __class__.ID, file_id)
         tag_list = self.db.File.get_tags_list(file_id)
         for tag in tag_list:
             self.db.File.delete_tag(tag, file_id, False)
@@ -63,7 +93,7 @@ class File():
             file_id = self.db.File.id(data)
         else:
             file_id = data
-        self.db._select_where('TagFile', 'tag_id', 'file_id', file_id, 'tag_id')
+        self.db._select_where(TagFile.TABLE, TagFile.TAG_ID, TagFile.FILE_ID, file_id, TagFile.TAG_ID)
         data = self.db._fetchall(logic=False)
         result = []
         for tag_id in data:
@@ -76,6 +106,10 @@ class File():
         if tag_id and file_id:
             self.db._delete_from_tagfile(tag_id, file_id)
             self.db.save(one)
+    
+    def get_type(self, name):
+        self.db._search_one(__class__.TABLE, __class__.TYPE, __class__.NAME, name)
+        return self.db._fetchone()
 
     def get_list_from_tags(self, tag_list):
         tags_list = self.db.Tag.list()
@@ -89,19 +123,19 @@ class File():
         result_or = set()
         result_not = set()
 
-        for tag in tag_list:
-            if tag[0] == "+":
-                tag = str_to_tag(tag[1:])
+        for tag_str in tag_list:
+            if tag_str[0] == "+":
+                tag = str_to_tag(tag_str[1:])
                 if tag[1] in tags_list:
                     tag_or.append(self.db.Tag.id(tag))
-            elif tag[0] == "-":
-                tag = str_to_tag(tag[1:])
+            elif tag_str[0] == "-":
+                tag = str_to_tag(tag_str[1:])
                 if tag[1] in tags_list:
                     tag_not.append(self.db.Tag.id(tag))
-            elif tag == 'all':
+            elif tag_str.lower() == 'all':
                 files_list = self.db.File.list()
             else:
-                tag = str_to_tag(tag)
+                tag = str_to_tag(tag_str)
                 if tag[0] == '' and tag[1] in group_list:
                     group_and.append(self.db.Group.id(tag[0]))
                 elif tag[1] in tags_list:
@@ -156,16 +190,27 @@ class File():
         elif files_list:
             return files_list
         else:
-            return ['not found']
+            return []
 
 
 class Tag():
     TABLE = 'Tag'
-    COLUMN_ID = 'id'
-    COLUMN_NAME = 'name'
+    ID = 'id'
+    NAME = 'name'
+    GROUP_ID = 'group_id'
     
     def __init__(self, db):
          self.db = db
+        
+    def create(self):
+        script = f"""CREATE TABLE IF NOT EXISTS {__class__.TABLE} (
+            {__class__.ID} INTEGER PRIMARY KEY, 
+            {__class__.NAME} TEXT NOT NULL UNIQUE
+            {__class__.GROUP_ID} INTEGER DEFAULT 0 NOT NULL,
+            UNIQUE({__class__.NAME}, {__class__.GROUP_ID}) ON CONFLICT IGNORE
+        ); """
+        self.db._create(script)
+
     
     def add(self, tag, group_id=0, one=True):
         if isinstance(tag, list):
@@ -175,7 +220,7 @@ class Tag():
             tag_name = tag
             if group_id == '':
                 group_id = 0
-        self.db._inserts(__class__.TABLE, ['name', 'group_id'], [tag_name, group_id])
+        self.db._inserts(__class__.TABLE, [__class__.NAME, __class__.GROUP_ID], [tag_name, group_id])
         self.db.save()
 
     def delete(self, tag, one=True):
@@ -183,7 +228,10 @@ class Tag():
             tag_id = self.db.Tag.id(tag[1], tag[0])
         else:
             tag_id = tag
-        self._delete(__class__.TABLE, 'id', tag_id)
+        file_list = self.db.Tag.get_file_list(tag_id)
+        for file_id in file_list:
+            self.db._delete_from_tagfile(tag_id, file_id)
+        self.db._delete(__class__.TABLE, __class__.ID, tag_id)
         self.db.save(one)
         
     def remove_file(self, tag, file, one):
@@ -206,15 +254,20 @@ class Tag():
             tag_name = tag
             group_id = self.db.Group.id(group_name)
         self.db._select_tag(tag_name, group_id)
-        return self.db._fetchone()
+        result =  self.db._fetchone()
+        return result
 
     def name(self, tag_id: int):
-        self.db._search_one(__class__.TABLE, 'name, group_id', 'id', tag_id)
-        data = self.db._fetchone(logic=False)
-        return [self.db.Group.name(data[1]), data[0]]
+        try:
+            self.db._search_one(__class__.TABLE, f'{__class__.NAME}, {__class__.GROUP_ID}', __class__.ID, tag_id)
+            data = self.db._fetchone(logic=False)
+            return [self.db.Group.name(data[1]), data[0]]
+        except Exception as e:
+            logging.error(f'tag: {tag_id}, {e}')
+            return None
         
     def list(self):
-        self.db._select(__class__.TABLE, "name", "group_id")
+        self.db._select(__class__.TABLE, __class__.NAME, __class__.GROUP_ID)
         return self.db._fetchall()
 
     def change_group(self, tag, group_id=0):
@@ -226,16 +279,14 @@ class Tag():
     def add_files(self, tag, file_list):
         tag_id = self.tags.get_id(tag[1], tag[0])
         if not tag_id:
-            print(f"ERROR: wrong tag: {tag}")
+            logging.error(f"wrong tag: {tag}")
         for file_name in file_list:
             self.files.add_tag(tad_id, file_name, False)
         self.save()
         
-    def get_file_list(self, tag):
-        tag_id = seld.db.Tag.id(tag)
-        self.db._select_where('TagFile', 'file_id', 'tag_id', tag_id)
-        result = self.db._fetchall()
-        print('es')
+    def get_file_list(self, tag_id):
+        self.db._select_where(TagFile.TABLE, TagFile.FILE_ID, TagFile.TAG_ID, tag_id)
+        return self.db._fetchall()
         
 
     def tree(self):
@@ -256,23 +307,31 @@ class Tag():
 
 class Group():
     TABLE = 'Group'
+    ID = 'id'
+    NAME = 'name'
     
     def __init__(self, db):
          self.db = db
                 
+    def create(self):
+        script = f"""CREATE TABLE IF NOT EXISTS {__class__.TABLE} (
+            {__class__.ID} INTEGER PRIMARY KEY, 
+            {__class__.NAME} TEXT NOT NULL UNIQUE); """
+        self.db._create(script)
+        
     def add(self, name, one=True):
-        self.db._insert(__class__.TABLE, 'name', name)
+        self.db._insert(__class__.TABLE, __class__.NAME, name)
         self.db.save(one)
         return self._fetchone()
     
     def delete(self, name, one=True):
-        self.db._delete(__class__.TABLE, 'name', name)
+        self.db._delete(__class__.TABLE, __class__.NAME, name)
         self.db.save(one)
 
     def id(self, group_name: str):
         if group_name == '' or group_name == 0:
             return 0
-        self.db._search_one(__class__.TABLE, 'id', 'name', group_name)
+        self.db._search_one(__class__.TABLE, __class__.ID, __class__.NAME, group_name)
         result = self.db._fetchone()
         if result:
             return result
@@ -280,9 +339,25 @@ class Group():
             return self.db.Group.add(group_name)
 
     def name(self, group_id: int):
-        self.db._search_one(__class__.TABLE, 'name', 'id', group_id)
+        self.db._search_one(__class__.TABLE, __class__.NAME, __class__.ID, group_id)
         return self.db._fetchone()
 
     def list(self):
-        self.db._select(__class__.TABLE, 'name')
+        self.db._select(__class__.TABLE, __class__.NAME)
         return self.db._fetchall()
+    
+class TagFile:
+    TABLE = 'TagFile'
+    ID = 'id'
+    FILE_ID = 'file_id'
+    TAG_ID = 'tag_id'
+    
+    def create():
+        script = f"""CREATE TABLE IF NOT EXISTS {__class__.TABLE} (
+                        {__class__.ID} INTEGER PRIMARY KEY,
+                        {__class__.TAG_ID} INTEGER NOT NULL,
+                        {__class__.FILE_ID} INTEGER NOT NULL,
+                   );
+                   CREATE UNIQUE INDEX IF NOT EXISTS {__class__.TABLE}_IDs ON {__class__.TABLE} ({__class__.TAG_ID}, {__class__.FILE_ID}); 
+                """
+        self.db._create(script)

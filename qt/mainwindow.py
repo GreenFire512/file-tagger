@@ -4,6 +4,7 @@ import subprocess
 import sys
 import threading
 import codecs
+import logging
 
 from database.qt.database import DataBase
 from utils import *
@@ -19,7 +20,9 @@ class App(QtWidgets.QMainWindow):
     def __init__(self, app):
         super().__init__()
         uic.loadUi('qt/ui/mainwindow.ui', self)
-        self.files_list = []
+        self.file_list_all_type = []
+        self.file_list = []
+        self.file_type = {}
         self.tags_list = []
         self.tags_tree = []
         self.tags_name_list = []
@@ -49,6 +52,10 @@ class App(QtWidgets.QMainWindow):
         self.buttonClear.triggered.connect(self.delete_not_exsist_files_from_db)
         self.buttonViewNotExist.triggered.connect(self.find_not_exisist_files_from_db)
         self.buttonViewExist.triggered.connect(self.see_exists_files)
+        self.actionAddTypeToFile.triggered.connect(self.add_type_to_files)
+        self.checkBoxImage.clicked.connect(self.set_files_list)
+        self.checkBoxUnknow.clicked.connect(self.set_files_list)
+        self.checkBoxVideo.clicked.connect(self.set_files_list)
 
         # All tags
         self.get_all_tags_list()
@@ -72,6 +79,7 @@ class App(QtWidgets.QMainWindow):
         self.lineAddTagToSearch.setCompleter(self.completerSearchTags)
         # END
         self.init_settings()
+        self.init_file_type()
 
     def init_settings(self):
         data = self.settings.load_settings()
@@ -110,9 +118,9 @@ class App(QtWidgets.QMainWindow):
                     tag = self._tree_item_to_list(item)
                     self.db.Tag.delete(tag, False)
                     self._detele_item_from_tree(self.treeAllTags)
-                    print(f'INFO: deleted tag: {tag[0]}:{tag[1]}')
+                    logging.info(f'deleted tag: {tag[0]}:{tag[1]}')
                 except:
-                    print(f"ERROR: cant delete tag: {tag[0]}:{tag[1]}")
+                    logging.error(f'cant delete tag: {tag[0]}:{tag[1]}')
             self.db.save()
 
     def add_group_to_tag(self, tag):
@@ -122,7 +130,7 @@ class App(QtWidgets.QMainWindow):
             self.get_all_tags_list()
 
     def search_tag_result(self):
-        print(f'INFO: NOT IMPLEMENTED')
+        logging.warning(f'INFO: NOT IMPLEMENTED')
         # self.treeAllTags.clear()
         # if self.lineSearchTags.text():
         #     for tag in self.tags_name_list:
@@ -208,12 +216,17 @@ class App(QtWidgets.QMainWindow):
         tags_list = []
         for i in range(self.listSearchTag.count()):
             tags_list.append(self.listSearchTag.item(i).text())
-        self.files_list.clear()
-        self.files_list = self.db.File.get_list_from_tags(tags_list)
+        self.file_list_all_type.clear()
+        self.file_list_all_type = self.db.File.get_list_from_tags(tags_list)
         self.set_files_list()
+        
+    def init_file_type(self):
+        files = self.db.File.list()
+        for name in files:
+            self.file_type[name] = self.db.File.get_type(name)
 
     def thread_view_file(self):
-        for file_name in self.files_list:
+        for file_name in self.file_list_all_type:
             item = QListWidgetItem(str(file_name))
             if '.jpg' in file_name or 'png' in file_name or 'jpeg' in file_name:
                 item.setIcon(QIcon(QPixmap(self._get_full_path(file_name)).scaled(200, 200, QtCore.Qt.KeepAspectRatio)))
@@ -225,11 +238,25 @@ class App(QtWidgets.QMainWindow):
         if self.checkTumbnailView.isChecked():
             threading.Thread(target=self.thread_view_file, daemon=True).start()
         else:
-            if self.files_list:
-                self.filesViewer.addItems(self.files_list)
+            if self.file_list_all_type:
+                file_type = []
+                if self.checkBoxImage.isChecked():
+                    file_type.append('image')
+                if self.checkBoxUnknow.isChecked():
+                    file_type.append('unknow')
+                if self.checkBoxVideo.isChecked():
+                    file_type.append('video')
+                self.file_list.clear()
+                if file_type:
+                    for name in self.file_list_all_type:
+                        if self.file_type[name] in file_type:
+                            self.file_list.append(name)
+                    self.filesViewer.addItems(self.file_list)
+                else:
+                    self.filesViewer.addItems(self.file_list_all_type)
 
         # self.testlist.clear()
-        # for file_name in self.files_list:
+        # for file_name in self.file_list_all_type:
         #     myQListWidget = QFileListItem()
         #     myQListWidget.setFileName(file_name)
         #     myQListWidgetItem = QListWidgetItem(self.testlist)
@@ -249,11 +276,11 @@ class App(QtWidgets.QMainWindow):
     def search_file_result(self):
         self.filesViewer.clear()
         if self.lineSearchFile.text():
-            for file in self.files_list:
-                if self.lineSearchFile.text().lower() in file.lower():
-                    self.filesViewer.addItem(file)
+            for name in self.file_list:
+                if self.lineSearchFile.text().lower() in name.lower():
+                    self.filesViewer.addItem(name)
         else:
-            self.filesViewer.addItems(self.files_list)
+            self.filesViewer.addItems(self.file_list)
 
     def delete_file_from_db(self):
         list_items = self.filesViewer.selectedItems()
@@ -268,9 +295,9 @@ class App(QtWidgets.QMainWindow):
                 try:
                     if os.path.exists(file_path):
                         os.remove(file_path)
-                    print(f'INFO: deleted file: {item.text()}')
+                    logging.info(f'deleted file: {item.text()}')
                 except ValueError:
-                    print(f"ERROR: can't deleted file: {item.text()}")
+                    logging.error(f"can't deleted file: {item.text()}")
             self.db.save()
 
     def delete_not_exsist_files_from_db(self):
@@ -281,25 +308,25 @@ class App(QtWidgets.QMainWindow):
                 file_path = self._get_full_path(file_name)
                 if not os.path.exists(file_path):
                     self.db.File.delete(file_name, False)
-                    print(f'INFO: deleted file: {file_name}')
+                    logging.info(f'INFO: deleted file: {file_name}')
             self.db.save()
 
     def find_not_exisist_files_from_db(self):
-        self.files_list = []
+        self.file_list_all_type = []
         file_list = self.db.File.list()
         for file_name in file_list:
             file_path = self._get_full_path(file_name)
             if not os.path.exists(file_path):
-                self.files_list.append(file_name)
+                self.file_list_all_type.append(file_name)
         self.set_files_list()
 
     def see_exists_files(self):
-        file_list = self.files_list.copy()
-        self.files_list = []
+        file_list = self.file_list_all_type.copy()
+        self.file_list_all_type = []
         for file_name in file_list:
             file_path = self._get_full_path(file_name)
             if os.path.exists(file_path):
-                self.files_list.append(file_name)
+                self.file_list_all_type.append(file_name)
         self.set_files_list()
 
     def open_one_file(self):
@@ -308,7 +335,7 @@ class App(QtWidgets.QMainWindow):
         if self._file_exists(file_path):
             subprocess.Popen([VLC_PATH, "file:///" + file_path])
         else:
-            print(f'ERROR: file not exists: {file_name}')
+            logging.error(f'file not exists: {file_name}')
 
     def export_files(self):
         file_list = []
@@ -335,6 +362,12 @@ class App(QtWidgets.QMainWindow):
                 file.write(string)
             file.close()
             subprocess.Popen([VLC_PATH, self.temp_file])
+            
+    def add_type_to_files(self):
+        files_list = self.db.File.list()
+        for file_name in files_list:
+            self.db.File.fill_file_type(file_name)
+        self.db.save()
 
     # Else
     def eventFilter(self, source, event):
@@ -365,20 +398,20 @@ class App(QtWidgets.QMainWindow):
         self.completerFilesTags.model().setStringList(self.tags_name_list)
 
     def change_path(self):
-        path = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        path = str(QFileDialog.getExistingDirectory(self, "Select Directory", directory=self.path))
         if path:
             self.path = path
 
     def add_files_to_db(self):
-        path = str(QFileDialog.getExistingDirectory(self, "Select Directory"))
+        path = str(QFileDialog.getExistingDirectory(self, "Select Directory", directory=self.path))
         if path:
             for file_name in os.listdir(path):
                 if os.path.isfile(path + "/" + file_name):
                     try:
                         self.db.File.add(file_name, False)
-                        print(f"ADD: file: {file}")
+                        logging.info(f"add file: {file_name}")
                     except:
-                        print(f"ERROR: cant add file: {file_name}")
+                        logging.error(f"cant add file: {file_name}")
             self.db.save()
 
     def menu_template(self):

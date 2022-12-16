@@ -1,7 +1,7 @@
 import sqlite3
 from utils import *
 from utils.constants import DB_DIR
-from database.qt.models import Tag, File, Group
+from database.qt.models import Tag, File, Group, TagFile
 
 
 class DataBase():
@@ -32,25 +32,10 @@ class DataBase():
             self.connection.commit()
 
     def create(self):
-        self.db.File.create()
-        
-        self.connection.executescript("""CREATE TABLE IF NOT EXISTS TagFile (
-                                                id INTEGER,
-                                                tag_id INTEGER NOT NULL,
-                                                file_id INTEGER NOT NULL,
-                                                CONSTRAINT tagged_files_PK PRIMARY KEY (id)
-                                            );
-                                    CREATE UNIQUE INDEX IF NOT EXISTS TagFile_IDs ON TagFile (tag_id,file_id); """)
-        self.connection.executescript("""CREATE TABLE IF NOT EXISTS Tag (
-                                                id INTEGER PRIMARY KEY,
-                                                name TEXT NOT NULL,
-                                                group_id INTEGER DEFAULT 0 NOT NULL,
-                                                UNIQUE(name, group_id) ON CONFLICT IGNORE
-                                         ); """)
-        self.connection.executescript("""CREATE TABLE IF NOT EXISTS Group (
-                                                id INTEGER PRIMARY KEY,
-                                                name TEXT NOT NULL UNIQUE
-                                         ); """)
+        self.self.db.File.create()
+        self.db.Tag.create()
+        self.db.Group.create()
+        self.db.TagFile.create()
         self.save()
 
     def _get_file_list_by_tag(self, tag_list):
@@ -97,12 +82,12 @@ class DataBase():
 
 
     # DELETE
-    def _delete(self, table: str, column: str, what: str):
+    def _delete(self, table: str, column: str, what):
         try:
             self.connection.execute(f"""DELETE FROM {table} WHERE {column} = '{what}'; """)
-            print("Total", self.cursor.rowcount, "Records deleted successfully")
+            logging.info(f'Total {self.cursor.rowcount} records deleted successfully')
         except sqlite3.Error as error:
-            print(f"ERROR: {error}")
+            logging.error(f'{error}')
                                         
     def _delete_from_tagfile(self, tag_id: int, file_id: int):
         self.connection.execute(f"""DELETE FROM TagFile WHERE TAG_ID = '{tag_id}' AND FILE_ID = '{file_id}'; """)
@@ -138,6 +123,9 @@ class DataBase():
         self.cursor.execute(f"""SELECT {column} FROM '{table}' where {column_where} = '{where}' {order}; """)
         
     # UPDATE
+    def _update_file_type(self, file_name:str, file_type:str):
+        self.connection.execute(f"""UPDATE File SET name='{file_name}', type='{file_type}' WHERE name='{file_name}'; """)
+        
     def _update_tag(self, tag, group_id):
-        self.connection.execute("UPDATE tags SET TAG_NAME=?, TAG_GROUP_ID=? WHERE TAG_NAME=? AND TAG_GROUP_ID=?;", \
+        self.connection.execute("UPDATE Tag SET name=?, group_id=? WHERE name=? AND group_id=?;", \
                                 (tag[1], group_id, tag[1], tag[0]))
