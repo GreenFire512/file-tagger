@@ -310,12 +310,15 @@
     <addaction name="button_open"/>
     <addaction name="buttonExport"/>
     <addaction name="separator"/>
-    <addaction name="buttonViewExist"/>
-    <addaction name="buttonViewNotExist"/>
-    <addaction name="actionAddTypeToFile"/>
+    <addaction name="actionViewAll"/>
+    <addaction name="actionViewExist"/>
+    <addaction name="actionViewNotExist"/>
     <addaction name="separator"/>
+    <addaction name="actionViewAllNotExist"/>
+    <addaction name="actionAddTypeToFile"/>
     <addaction name="buttonClear"/>
     <addaction name="buttonDeleteFIleFromDb"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu"/>
    <addaction name="menuProfile"/>
@@ -361,14 +364,14 @@
     <string>Экспорт</string>
    </property>
   </action>
-  <action name="buttonViewExist">
+  <action name="actionViewExist">
    <property name="text">
     <string>Показать существующие</string>
    </property>
   </action>
-  <action name="buttonViewNotExist">
+  <action name="actionViewAllNotExist">
    <property name="text">
-    <string>Показать несуществующие</string>
+    <string>Показать все несуществующие</string>
    </property>
   </action>
   <action name="buttonClear">
@@ -394,6 +397,16 @@
   <action name="actionAddTypeToFile">
    <property name="text">
     <string>Добавить тип к файлам</string>
+   </property>
+  </action>
+  <action name="actionViewNotExist">
+   <property name="text">
+    <string>Показать несуществующте</string>
+   </property>
+  </action>
+  <action name="actionViewAll">
+   <property name="text">
+    <string>Показать все</string>
    </property>
   </action>
  </widget>

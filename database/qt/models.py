@@ -8,7 +8,7 @@ class File():
     NAME = 'name'
     TYPE = 'type'
     ADDED_DATE = 'added_date'
-    IMAGE_TYPE = ['jpeg', 'jpg', 'png', 'gif']
+    IMAGE_TYPE = ['jpeg', 'jpg', 'png', 'gif', 'jfif']
     VIDEO_TYPE = ['mp4', 'webm']
     
     
@@ -79,9 +79,9 @@ class File():
 
     def delete(self, data, one=True):
         if isinstance(data, int):
-            file_id = self.File.id(data)
-        else:
             file_id = data
+        else:
+            file_id = self.db.File.id(data)
         self.db._delete(__class__.TABLE, __class__.ID, file_id)
         tag_list = self.db.File.get_tags_list(file_id)
         for tag in tag_list:

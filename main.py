@@ -1,3 +1,4 @@
+import logging
 import sys
 
 from utils.settings import Settings
@@ -9,6 +10,7 @@ class App:
         self.settings = Settings()
 
 def main():
+    logging.basicConfig(encoding='utf-8', level=logging.DEBUG)
     if len(sys.argv) > 1 and sys.argv[1] == 'qt':
         app = App()
         start_qt_app(app)

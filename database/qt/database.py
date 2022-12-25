@@ -1,4 +1,6 @@
 import sqlite3
+import logging
+
 from utils import *
 from utils.constants import DB_DIR
 from database.qt.models import Tag, File, Group, TagFile
@@ -29,6 +31,8 @@ class DataBase():
         if message:
             print(f"Total {self.cursor.rowcount}")
         if one:
+            x = self.cursor.execute(f'SELECT changes()')
+            print(x)
             self.connection.commit()
 
     def create(self):

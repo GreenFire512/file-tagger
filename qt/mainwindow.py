@@ -21,8 +21,9 @@ class App(QtWidgets.QMainWindow):
         super().__init__()
         uic.loadUi('qt/ui/mainwindow.ui', self)
         self.file_list_all_type = []
-        self.file_list = []
         self.file_type = {}
+        self.file_list = []
+        self.file_list_filtered = []
         self.tags_list = []
         self.tags_tree = []
         self.tags_name_list = []
@@ -46,16 +47,18 @@ class App(QtWidgets.QMainWindow):
         self.filesViewer.itemDoubleClicked.connect(self.open_one_file)
         self.filesViewer.selectionModel().selectionChanged.connect(self.refresh_file_tag_list)
         self.filesViewer.installEventFilter(self)
-        self.checkFileSorting.clicked.connect(self.set_files_list)
+        self.checkFileSorting.clicked.connect(self.set_files_list_to_view)
         self.checkTumbnailView.clicked.connect(self.set_files_view)
         self.buttonExport.triggered.connect(self.export_files_to_dir)
         self.buttonClear.triggered.connect(self.delete_not_exsist_files_from_db)
-        self.buttonViewNotExist.triggered.connect(self.find_not_exisist_files_from_db)
-        self.buttonViewExist.triggered.connect(self.see_exists_files)
+        self.actionViewAllNotExist.triggered.connect(self.find_not_exisist_files_from_db)
+        self.actionViewAll.triggered.connect(self.see_all_files)
+        self.actionViewExist.triggered.connect(self.see_exists_files)
+        self.actionViewNotExist.triggered.connect(self.see_not_exists_files)
         self.actionAddTypeToFile.triggered.connect(self.add_type_to_files)
-        self.checkBoxImage.clicked.connect(self.set_files_list)
-        self.checkBoxUnknow.clicked.connect(self.set_files_list)
-        self.checkBoxVideo.clicked.connect(self.set_files_list)
+        self.checkBoxImage.clicked.connect(self.get_file_list)
+        self.checkBoxUnknow.clicked.connect(self.get_file_list)
+        self.checkBoxVideo.clicked.connect(self.get_file_list)
 
         # All tags
         self.get_all_tags_list()
@@ -143,19 +146,19 @@ class App(QtWidgets.QMainWindow):
     def add_tag_to_search_from_tags(self):
         if self.treeAllTags.currentItem().text():
             self.listSearchTag.addItem(self.treeAllTags.currentItem().text())
-            self.get_files_list()
+            self.get_files_list_from_db()
 
     def add_tag_to_search_from_line(self):
         if self.lineAddTagToSearch.text():
             self.listSearchTag.addItem(self.lineAddTagToSearch.text())
             self.lineAddTagToSearch.clear()
-            self.get_files_list()
+            self.get_files_list_from_db()
 
     def delete_tag_from_search(self):
         list_items = self.listSearchTag.selectedItems()
         for item in list_items:
             self.listSearchTag.takeItem(self.listSearchTag.row(item))
-        self.get_files_list()
+        self.get_files_list_from_db()
 
     # File tags
     def refresh_file_tag_list(self):
@@ -182,7 +185,7 @@ class App(QtWidgets.QMainWindow):
         for item in files:
             tag_list = self._tree_list_to_list(tags)
             self.db.File.add_tags(item.text(), tag_list, False)
-            print(f'INFO: add to file: {item.text()} tags "{tag_list}"')
+            logging.info(f'add to file: {item.text()} tags "{tag_list}"')
         self.db.save()
         self.refresh_file_tag_list()
 
@@ -192,7 +195,7 @@ class App(QtWidgets.QMainWindow):
             file_list = self._item_list_to_list(files)
             for file_name in file_list:
                 self.db.Tag.remove_file(str_to_tag(self.listFilesTags.currentItem().text()), file_name, False)
-                print(f'INFO: deleted tag "{self.listFilesTags.currentItem().text()}" from files: {file_name}')
+                logging.info(f'deleted tag "{self.listFilesTags.currentItem().text()}" from files: {file_name}')
             self.db.save()
             self.refresh_file_tag_list()
 
@@ -209,16 +212,18 @@ class App(QtWidgets.QMainWindow):
         for item in items:
             data_str = self._tree_item_to_str(item)
             self.listSearchTag.addItem(data_str)
-        self.get_files_list()
+        self.get_files_list_from_db()
 
     # Files
-    def get_files_list(self):
+    def get_files_list_from_db(self):
         tags_list = []
         for i in range(self.listSearchTag.count()):
             tags_list.append(self.listSearchTag.item(i).text())
         self.file_list_all_type.clear()
         self.file_list_all_type = self.db.File.get_list_from_tags(tags_list)
-        self.set_files_list()
+        self.get_file_list()
+        self.file_list_filtered = self.file_list.copy()
+        self.set_files_list_to_view()
         
     def init_file_type(self):
         files = self.db.File.list()
@@ -226,42 +231,39 @@ class App(QtWidgets.QMainWindow):
             self.file_type[name] = self.db.File.get_type(name)
 
     def thread_view_file(self):
-        for file_name in self.file_list_all_type:
+        for file_name in self.file_list_filtered:
             item = QListWidgetItem(str(file_name))
             if '.jpg' in file_name or 'png' in file_name or 'jpeg' in file_name:
                 item.setIcon(QIcon(QPixmap(self._get_full_path(file_name)).scaled(200, 200, QtCore.Qt.KeepAspectRatio)))
             self.filesViewer.addItem(item)
+            
+    def get_file_list(self):
+        if self.file_list_all_type:
+            file_type = []
+            if self.checkBoxImage.isChecked():
+                file_type.append('image')
+            if self.checkBoxUnknow.isChecked():
+                file_type.append('unknow')
+            if self.checkBoxVideo.isChecked():
+                file_type.append('video')
+            self.file_list.clear()
+            if file_type:
+                for name in self.file_list_all_type:
+                    if self.file_type[name] in file_type:
+                        self.file_list.append(name)
+            else:
+                self.file_list = self.file_list_all_type.copy()
+        else:
+            self.file_list = []
+        self.see_all_files()
 
-    def set_files_list(self):
+    def set_files_list_to_view(self):
         self.filesViewer.clear()
         self.filesViewer.setSortingEnabled(self.checkFileSorting.isChecked())
         if self.checkTumbnailView.isChecked():
             threading.Thread(target=self.thread_view_file, daemon=True).start()
         else:
-            if self.file_list_all_type:
-                file_type = []
-                if self.checkBoxImage.isChecked():
-                    file_type.append('image')
-                if self.checkBoxUnknow.isChecked():
-                    file_type.append('unknow')
-                if self.checkBoxVideo.isChecked():
-                    file_type.append('video')
-                self.file_list.clear()
-                if file_type:
-                    for name in self.file_list_all_type:
-                        if self.file_type[name] in file_type:
-                            self.file_list.append(name)
-                    self.filesViewer.addItems(self.file_list)
-                else:
-                    self.filesViewer.addItems(self.file_list_all_type)
-
-        # self.testlist.clear()
-        # for file_name in self.file_list_all_type:
-        #     myQListWidget = QFileListItem()
-        #     myQListWidget.setFileName(file_name)
-        #     myQListWidgetItem = QListWidgetItem(self.testlist)
-        #     self.testlist.addItem(myQListWidgetItem)
-        #     self.testlist.setItemWidget(myQListWidgetItem, myQListWidget)
+            self.filesViewer.addItems(self.file_list_filtered)
 
     def set_files_view(self):
         if self.checkTumbnailView.isChecked():
@@ -271,16 +273,18 @@ class App(QtWidgets.QMainWindow):
         else:
             self.filesViewer.setResizeMode(QListView.Fixed)
             self.filesViewer.setViewMode(QListView.ListMode)
-        self.set_files_list()
+        self.set_files_list_to_view()
 
     def search_file_result(self):
         self.filesViewer.clear()
+        self.file_list_filtered.clear()
         if self.lineSearchFile.text():
             for name in self.file_list:
                 if self.lineSearchFile.text().lower() in name.lower():
-                    self.filesViewer.addItem(name)
+                    self.file_list_filtered.append(name)
         else:
-            self.filesViewer.addItems(self.file_list)
+            self.file_list_filtered = self.file_list.copy()
+        self.set_files_list_to_view()
 
     def delete_file_from_db(self):
         list_items = self.filesViewer.selectedItems()
@@ -318,16 +322,29 @@ class App(QtWidgets.QMainWindow):
             file_path = self._get_full_path(file_name)
             if not os.path.exists(file_path):
                 self.file_list_all_type.append(file_name)
-        self.set_files_list()
+        self.get_file_list()
+        self.file_list_filtered = self.file_list
+        self.set_files_list_to_view()
 
     def see_exists_files(self):
-        file_list = self.file_list_all_type.copy()
-        self.file_list_all_type = []
-        for file_name in file_list:
+        self.file_list_filtered = []
+        for file_name in self.file_list:
             file_path = self._get_full_path(file_name)
             if os.path.exists(file_path):
-                self.file_list_all_type.append(file_name)
-        self.set_files_list()
+                self.file_list_filtered.append(file_name)
+        self.set_files_list_to_view()
+        
+    def see_not_exists_files(self):
+        self.file_list_filtered.clear()
+        for file_name in self.file_list:
+            file_path = self._get_full_path(file_name)
+            if not os.path.exists(file_path):
+                self.file_list_filtered.append(file_name)
+        self.set_files_list_to_view()
+        
+    def see_all_files(self):
+        self.file_list_filtered = self.file_list.copy()
+        self.set_files_list_to_view()
 
     def open_one_file(self):
         file_name = self.filesViewer.currentItem().text()
@@ -413,6 +430,7 @@ class App(QtWidgets.QMainWindow):
                     except:
                         logging.error(f"cant add file: {file_name}")
             self.db.save()
+            self.init_file_type()
 
     def menu_template(self):
         templates = self.settings.get_profile_list()
