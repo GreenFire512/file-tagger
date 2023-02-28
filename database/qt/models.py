@@ -23,7 +23,7 @@ class File():
             {__class__.TYPE} TEXT(10),
             {__class__.ADDED_DATE} INTEGER)
             CREATE UNIQUE INDEX File_name_IDX ON File (name,"type");
-"""
+        """
         self.db._create(script)
     
     def list(self):
@@ -175,18 +175,21 @@ class File():
                     result_and.add(tag_id[0])
 
         if len(tag_or) > 0:
-            result_or = self.db.Tag.get_file_list(tag_or)
+            data = tag_or[0] if len(tag_or) == 1 else tuple(tag_or)
+            result_or = self.db.Tag.get_file_list(data)
         if len(tag_not) > 0:
-            result_not = self.db.Tag.get_file_list(tag_not)
+            data = tag_not[0] if len(tag_not) == 1 else tuple(tag_not)
+            result_not = self.db.Tag.get_file_list(data)
+
 
         if result_or or result_and or result_not:
             if result_and or result_or:
                 result_and.update(result_or)
-                return result_and - result_not
+                return set(result_and) - set(result_not)
             else:
                 files_list = set()
                 files_list.update(self.db.File.list())
-                return files_list - result_not
+                return set(files_list) - set(result_not)
         elif files_list:
             return files_list
         else:
@@ -273,6 +276,8 @@ class Tag():
     def change_group(self, tag, group_id=0):
         if isinstance(group_id, str):
             group_id = self.db.Group.id(group_id)
+        if not isinstance(tag[0], int):
+            tag[0] = self.db.Group.id(tag[0])
         self.db._update_tag(tag, group_id)
         self.db.save()
         
@@ -286,7 +291,11 @@ class Tag():
         
     def get_file_list(self, tag_id):
         self.db._select_where(TagFile.TABLE, TagFile.FILE_ID, TagFile.TAG_ID, tag_id)
-        return self.db._fetchall()
+        result = []
+        data = self.db._fetchall()
+        for file_id in data:
+            result.append(self.db.File.name(file_id))
+        return result
         
 
     def tree(self):
@@ -322,14 +331,14 @@ class Group():
     def add(self, name, one=True):
         self.db._insert(__class__.TABLE, __class__.NAME, name)
         self.db.save(one)
-        return self._fetchone()
+        return self.db._fetchone()
     
     def delete(self, name, one=True):
         self.db._delete(__class__.TABLE, __class__.NAME, name)
         self.db.save(one)
 
     def id(self, group_name: str):
-        if group_name == '' or group_name == 0:
+        if group_name == '' or group_name == 0 or group_name == None:
             return 0
         self.db._search_one(__class__.TABLE, __class__.ID, __class__.NAME, group_name)
         result = self.db._fetchone()

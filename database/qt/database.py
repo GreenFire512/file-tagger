@@ -88,7 +88,7 @@ class DataBase():
     # DELETE
     def _delete(self, table: str, column: str, what):
         try:
-            self.connection.execute(f"""DELETE FROM {table} WHERE {column} = '{what}'; """)
+            self.connection.execute(f"""DELETE FROM '{table}' WHERE {column} = '{what}'; """)
             logging.info(f'Total {self.cursor.rowcount} records deleted successfully')
         except sqlite3.Error as error:
             logging.error(f'{error}')
@@ -99,12 +99,12 @@ class DataBase():
     
     # INSERT
     def _insert(self, table:str, column:str, value:str):
-        self.connection.execute(f"""INSERT OR IGNORE INTO {table} ('{column}') VALUES ('{value}') RETURNING id; """)
+        self.connection.execute(f"""INSERT OR IGNORE INTO '{table}' ('{column}') VALUES ('{value}') RETURNING id; """)
 
     def _inserts(self, table:str, colums: list, data: list):
         columns_str = str(colums[0]) + "', '" + str(colums[1])
         values_str = str(data[0]) + "', '" + str(data[1])
-        self.connection.execute(f"""INSERT OR IGNORE INTO {table} ('{columns_str}') VALUES ('{values_str}'); """)
+        self.connection.execute(f"""INSERT OR IGNORE INTO '{table}' ('{columns_str}') VALUES ('{values_str}'); """)
 
 
     # SEARCH
@@ -121,10 +121,12 @@ class DataBase():
     def _select_tag(self, tag_name:str, group_id:int):
         self.cursor.execute(f"""SELECT ID FROM Tag WHERE name = '{tag_name}' AND group_id = '{group_id}'; """)
         
-    def _select_where(self, table:str, column:str, column_where:str, where:str, order=''):
+    def _select_where(self, table:str, column:str, column_where:str, where, order=''):
         if order:
             order = f'ORDER by {order} ASC'
-        self.cursor.execute(f"""SELECT {column} FROM '{table}' where {column_where} = '{where}' {order}; """)
+        if isinstance(where, int):
+            where = f'(\'{where}\')'
+        self.cursor.execute(f"""SELECT {column} FROM '{table}' where {column_where} IN {where} {order}; """)
         
     # UPDATE
     def _update_file_type(self, file_name:str, file_type:str):

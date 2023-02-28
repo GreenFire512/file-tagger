@@ -14,8 +14,8 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout_5">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
      <layout class="QGridLayout" name="MainLayout" rowstretch="0" columnstretch="0">
       <item row="0" column="0">
        <widget class="QSplitter" name="splitter">
@@ -80,25 +80,15 @@
             <property name="spacing">
              <number>0</number>
             </property>
-            <item row="3" column="1">
-             <widget class="QPushButton" name="buttonDeleteTagFromFile">
-              <property name="text">
-               <string>Удалить</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0" colspan="2">
-             <widget class="QListWidget" name="testlist"/>
-            </item>
-            <item row="2" column="0" colspan="2">
-             <widget class="QLineEdit" name="lineAddTagToFile"/>
-            </item>
             <item row="0" column="0" colspan="2">
              <widget class="QLabel" name="labelFileTags">
               <property name="text">
                <string>Теги файла</string>
               </property>
              </widget>
+            </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QLineEdit" name="lineAddTagToFile"/>
             </item>
             <item row="3" column="0">
              <widget class="QPushButton" name="buttonAddTagToFile">
@@ -116,6 +106,16 @@
                </size>
               </property>
              </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="buttonDeleteTagFromFile">
+              <property name="text">
+               <string>Удалить</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0" colspan="2">
+             <layout class="QGridLayout" name="FileListGrid"/>
             </item>
            </layout>
           </item>
@@ -276,7 +276,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
