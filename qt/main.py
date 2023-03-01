@@ -14,7 +14,9 @@ from PyQt5.QtCore import QThread, pyqtSignal, QObject, Qt
 from PyQt5.QtGui import QIcon, QPixmap, QStandardItem, QStandardItemModel
 from PyQt5.QtWidgets import (QFileDialog, QListWidget, QMessageBox, QActionGroup, QAction, QInputDialog, QCompleter,
                              QListView, QListWidgetItem, QTreeWidget, QTreeWidgetItem)
-from qt.qfilelistitem import *
+from qt.filewidget import *
+from qt.tagwidget import *
+from threading import *
 
 class App(QtWidgets.QMainWindow):
     def __init__(self, app):
@@ -267,22 +269,24 @@ class App(QtWidgets.QMainWindow):
             self.filesViewer.addItems(self.file_list_filtered)
             
         #test
-        self.add_items_to_test()
-
-    def add_items_to_test(self):
         self.FileListWidget.clear()
-        self.addItemToListThread = AddItemToListThread()
-        t = threading.Thread(name='AddToList', target=)
-        t.start()
-        self.connect(self.addItemToListThread, QtCore.SIGNAL("ping(PyQt_PyObject)"), self.FileListWidget.addToList)
-        self.addItemToListThread.run(self.file_list_filtered)
+        # thread = Thread(target=self.add_items_to_test)
+        # thread.start()
+
+    @QtCore.pyqtSlot(int)
+    def add_items_to_test(self, file_name):
+        # self.addItemToListThread = AddItemToListThread()
+        # t = threading.Thread(name='AddToList', target=)
+        # t.start()
+        # self.connect(self.addItemToListThread, QtCore.SIGNAL("ping(PyQt_PyObject)"), self.FileListWidget.addToList)
+        # self.addItemToListThread.run(self.file_list_filtered)
         # for file_name in self.file_list_filtered:
-        #     widget = QFileListItem()
-        #     widget.setFileName(file_name)
-        #     item = QListWidgetItem(self.FileListWidget)
-        #     item.setSizeHint(widget.minimumSizeHint())
-        #     self.FileListWidget.addItem(item)
-        #     self.FileListWidget.setItemWidget(item, widget)       
+        widget = FileListItem()
+        widget.setFileName(file_name)
+        item = QListWidgetItem(self.FileListWidget)
+        item.setSizeHint(widget.minimumSizeHint())
+        self.FileListWidget.addItem(item)
+        self.FileListWidget.setItemWidget(item, widget)       
             
 
     def set_files_view(self):
@@ -390,7 +394,7 @@ class App(QtWidgets.QMainWindow):
                     shutil.move(self.path + '/' + file_list[i], self.path + dir_name + file_list[i])
 
     def open_vlc(self):
-        file_list = self.export_files()
+        file_list = self._export_files()
         if not file_list:
             return
         file = codecs.open(self.temp_file, 'w', 'utf-8')
@@ -493,10 +497,10 @@ class App(QtWidgets.QMainWindow):
         return str(self.path + "/" + file_name)
 
     def _tree_item_to_data(self, item, return_list=False):
-        group = item.parent().data() + ':' if item.parent().data() else ''
+        group = item.parent().data() if item.parent().data() else ''
         if return_list:
             return [group, item.data()]
-        return group + item.data()
+        return (group + ':' if group else '') + item.data()
 
     def _tree_list_to_list(self, item_list) -> list:
         result = []

@@ -75,65 +75,11 @@
           <property name="spacing">
            <number>0</number>
           </property>
-          <item row="1" column="3">
-           <layout class="QGridLayout" name="layoutFileTags">
-            <property name="spacing">
-             <number>0</number>
-            </property>
-            <item row="0" column="0" colspan="2">
-             <widget class="QLabel" name="labelFileTags">
-              <property name="text">
-               <string>Теги файла</string>
-              </property>
-             </widget>
-            </item>
-            <item row="2" column="0" colspan="2">
-             <widget class="QLineEdit" name="lineAddTagToFile"/>
-            </item>
-            <item row="3" column="0">
-             <widget class="QPushButton" name="buttonAddTagToFile">
-              <property name="text">
-               <string>Добавить</string>
-              </property>
-             </widget>
-            </item>
-            <item row="1" column="0" colspan="2">
-             <widget class="QListWidget" name="listFilesTags">
-              <property name="minimumSize">
-               <size>
-                <width>180</width>
-                <height>0</height>
-               </size>
-              </property>
-             </widget>
-            </item>
-            <item row="3" column="1">
-             <widget class="QPushButton" name="buttonDeleteTagFromFile">
-              <property name="text">
-               <string>Удалить</string>
-              </property>
-             </widget>
-            </item>
-            <item row="5" column="0" colspan="2">
-             <layout class="QGridLayout" name="FileListGrid"/>
-            </item>
-           </layout>
-          </item>
           <item row="0" column="3">
            <layout class="QGridLayout" name="layoutTagSearch">
             <property name="spacing">
              <number>0</number>
             </property>
-            <item row="2" column="0">
-             <widget class="QLineEdit" name="lineAddTagToSearch"/>
-            </item>
-            <item row="2" column="1">
-             <widget class="QPushButton" name="buttonDeleteTagFromSearch">
-              <property name="text">
-               <string>Удалить</string>
-              </property>
-             </widget>
-            </item>
             <item row="1" column="0" colspan="2">
              <widget class="QListWidget" name="listSearchTag">
               <property name="minimumSize">
@@ -141,6 +87,16 @@
                 <width>180</width>
                 <height>0</height>
                </size>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLineEdit" name="lineAddTagToSearch"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="buttonDeleteTagFromSearch">
+              <property name="text">
+               <string>Удалить</string>
               </property>
              </widget>
             </item>
@@ -213,6 +169,50 @@
                </property>
               </column>
              </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="3">
+           <layout class="QGridLayout" name="layoutFileTags">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="labelFileTags">
+              <property name="text">
+               <string>Теги файла</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QLineEdit" name="lineAddTagToFile"/>
+            </item>
+            <item row="3" column="0">
+             <widget class="QPushButton" name="buttonAddTagToFile">
+              <property name="text">
+               <string>Добавить</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QListWidget" name="listFilesTags">
+              <property name="minimumSize">
+               <size>
+                <width>180</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="buttonDeleteTagFromFile">
+              <property name="text">
+               <string>Удалить</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0" colspan="2">
+             <layout class="QGridLayout" name="FileListGrid"/>
             </item>
            </layout>
           </item>

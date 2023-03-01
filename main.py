@@ -2,7 +2,7 @@ import logging
 import sys
 
 from utils.settings import Settings
-from qt.mainwindow import start_qt_app
+from qt.main import start_qt_app
 from server import *
 
 class App:

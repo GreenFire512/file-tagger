@@ -14,9 +14,9 @@ class FileListWidget(QListWidget):
         self.addItem(item)
 
 
-class QFileListItem(QWidget):
+class FileListItem(QWidget):
     def __init__(self):
-        super(QFileListItem, self).__init__()
+        super(FileListItem, self).__init__()
         uic.loadUi('qt/ui/filelistitem.ui', self)
 
     def setFileName(self, text):
@@ -28,16 +28,16 @@ class QFileListItem(QWidget):
         self.tag.setText(text)
 
 
-class AddItemToListThread(QThread):
-    def __init__(self):
-        super(AddItemToListThread, self).__init__()
+class AddItemToFileListThread(QThread):
+    def __init__(self, parent):
+        super(AddItemToFileListThread, self).__init__(parent)
         self.stopFlag = False
 
     def run(self, items):
         for file_name in items:
             if self.stopFlag:
                 break
-            self.emit(QtCore.SIGNAL('ping(PyQt_PyObject)'), file_name)
+            self.emit(QtCore.SIGNAL('add_items_to_test(int)'), file_name)
             sleep(0.005)
         self.stopFlag = False
 
