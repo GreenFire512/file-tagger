@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>965</width>
+    <height>455</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="0" column="0">
+     <layout class="QGridLayout" name="MainLayout" rowstretch="0" columnstretch="0">
+      <item row="0" column="0">
+       <widget class="QSplitter" name="splitter">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="lineWidth">
+         <number>2</number>
+        </property>
+        <property name="midLineWidth">
+         <number>0</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="opaqueResize">
+         <bool>true</bool>
+        </property>
+        <property name="handleWidth">
+         <number>4</number>
+        </property>
+        <property name="childrenCollapsible">
+         <bool>true</bool>
+        </property>
+        <widget class="QWidget" name="leftLayout" native="true">
+         <property name="sizeIncrement">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>0</width>
+           <height>0</height>
+          </size>
+         </property>
+         <layout class="QGridLayout" name="gridLayout_5" rowstretch="0,0" columnstretch="0,0,0,0">
+          <property name="sizeConstraint">
+           <enum>QLayout::SetDefaultConstraint</enum>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="0" rowspan="2">
+           <layout class="QGridLayout" name="layoutAllTags">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="4" column="1">
+             <widget class="QCheckBox" name="checkBoxImage">
+              <property name="text">
+               <string>Image</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="2">
+             <widget class="QCheckBox" name="checkBoxUnknown">
+              <property name="text">
+               <string>unknown</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QCheckBox" name="checkBoxVideo">
+              <property name="text">
+               <string>Video</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="3">
+             <widget class="QTreeWidget" name="treeAllTags">
+              <property name="minimumSize">
+               <size>
+                <width>180</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="selectionMode">
+               <enum>QAbstractItemView::ExtendedSelection</enum>
+              </property>
+              <property name="sortingEnabled">
+               <bool>true</bool>
+              </property>
+              <property name="expandsOnDoubleClick">
+               <bool>false</bool>
+              </property>
+              <property name="columnCount">
+               <number>1</number>
+              </property>
+              <attribute name="headerShowSortIndicator" stdset="0">
+               <bool>true</bool>
+              </attribute>
+              <column>
+               <property name="text">
+                <string notr="true">Tags</string>
+               </property>
+               <property name="font">
+                <font>
+                 <stylestrategy>PreferDefault</stylestrategy>
+                </font>
+               </property>
+              </column>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="1" column="3">
+           <layout class="QGridLayout" name="layoutFileTags">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="3" column="0">
+             <widget class="QPushButton" name="buttonAddTagToFile">
+              <property name="text">
+               <string>Add</string>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0" colspan="2">
+             <widget class="QLineEdit" name="lineAddTagToFile"/>
+            </item>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="labelFileTags">
+              <property name="text">
+               <string>File tags</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0" colspan="2">
+             <layout class="QGridLayout" name="FileListGrid"/>
+            </item>
+            <item row="3" column="1">
+             <widget class="QPushButton" name="buttonDeleteTagFromFile">
+              <property name="text">
+               <string>Delete</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0" colspan="2">
+             <widget class="QListWidget" name="listFilesTags">
+              <property name="minimumSize">
+               <size>
+                <width>180</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="0" column="3">
+           <layout class="QGridLayout" name="layoutTagSearch">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <item row="1" column="0" colspan="2">
+             <widget class="QListWidget" name="listSearchTag">
+              <property name="minimumSize">
+               <size>
+                <width>180</width>
+                <height>0</height>
+               </size>
+              </property>
+             </widget>
+            </item>
+            <item row="2" column="0">
+             <widget class="QLineEdit" name="lineAddTagToSearch"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="QPushButton" name="buttonDeleteTagFromSearch">
+              <property name="text">
+               <string>Delete</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0" colspan="2">
+             <widget class="QLabel" name="labelTagSearch">
+              <property name="text">
+               <string>Search</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="rightLayout" native="true">
+         <layout class="QGridLayout" name="gridLayout_6" rowstretch="0,0,0" columnstretch="0,0,0,0,0">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <item row="0" column="3">
+           <widget class="QCheckBox" name="checkThumbnailView">
+            <property name="text">
+             <string>Thumbnails</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="4">
+           <widget class="QCheckBox" name="checkFileSorting">
+            <property name="text">
+             <string>Sort</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0" colspan="3">
+           <widget class="QLineEdit" name="lineSearchFile"/>
+          </item>
+          <item row="2" column="0" colspan="5">
+           <widget class="QListWidget" name="filesViewer">
+            <property name="editTriggers">
+             <set>QAbstractItemView::NoEditTriggers</set>
+            </property>
+            <property name="showDropIndicator" stdset="0">
+             <bool>false</bool>
+            </property>
+            <property name="selectionMode">
+             <enum>QAbstractItemView::ExtendedSelection</enum>
+            </property>
+            <property name="layoutMode">
+             <enum>QListView::SinglePass</enum>
+            </property>
+            <property name="viewMode">
+             <enum>QListView::ListMode</enum>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>965</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Menu</string>
+    </property>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuTags">
+    <property name="title">
+     <string>Tags</string>
+    </property>
+    <addaction name="actionTagsAdd"/>
+    <addaction name="actionRename"/>
+    <addaction name="actionTagsChangeGroup"/>
+    <addaction name="actionTagsDelete"/>
+   </widget>
+   <widget class="QMenu" name="menuFiles">
+    <property name="title">
+     <string>Files</string>
+    </property>
+    <addaction name="actionFilesOpen"/>
+    <addaction name="actionFilesAdd"/>
+    <addaction name="actionFilesDelete"/>
+    <addaction name="separator"/>
+    <addaction name="actionFilesViewAll"/>
+    <addaction name="actionFilesViewExists"/>
+    <addaction name="actionFilesViewNotExists"/>
+   </widget>
+   <widget class="QMenu" name="menuUtility">
+    <property name="title">
+     <string>Utility</string>
+    </property>
+    <addaction name="actionExportFiles"/>
+    <addaction name="actionAddTypesToFiles"/>
+    <addaction name="actionChangePath"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menuTags"/>
+   <addaction name="menuFiles"/>
+   <addaction name="menuUtility"/>
+  </widget>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionFilesOpen">
+   <property name="text">
+    <string>Open</string>
+   </property>
+  </action>
+  <action name="actionExportFiles">
+   <property name="text">
+    <string>Export</string>
+   </property>
+  </action>
+  <action name="actionFilesAdd">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="actionFilesDelete">
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actionAddTypesToFiles">
+   <property name="text">
+    <string>Add types to files</string>
+   </property>
+  </action>
+  <action name="actionChangePath">
+   <property name="text">
+    <string>Change path</string>
+   </property>
+  </action>
+  <action name="actionTagsAdd">
+   <property name="text">
+    <string>Add</string>
+   </property>
+  </action>
+  <action name="actionRename">
+   <property name="text">
+    <string>Rename</string>
+   </property>
+  </action>
+  <action name="actionTagsDelete">
+   <property name="text">
+    <string>Delete</string>
+   </property>
+  </action>
+  <action name="actionTagsChangeGroup">
+   <property name="text">
+    <string>Change group</string>
+   </property>
+  </action>
+  <action name="actionFilesViewAll">
+   <property name="text">
+    <string>View all</string>
+   </property>
+  </action>
+  <action name="actionFilesViewExists">
+   <property name="text">
+    <string>View exists</string>
+   </property>
+  </action>
+  <action name="actionFilesViewNotExists">
+   <property name="text">
+    <string>View not exists</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
